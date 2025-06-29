@@ -1,19 +1,19 @@
-import axios from "axios";
+import axios from 'axios';
 
-const instance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || "https://rsb-news-backend.onrender.com",
-  headers: {
-    "Content-Type": "application/json",
-  },
+const API = import.meta.env.VITE_API;
+
+const axiosInstance = axios.create({
+  baseURL: API,
 });
 
-// Token set karna automatically
-instance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+// Optional: Interceptors for adding token
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
   if (token) {
-    config.headers.Authorization = Bearer ${token};
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-export default instance;
+export default axiosInstance;
+
