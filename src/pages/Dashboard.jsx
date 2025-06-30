@@ -18,7 +18,7 @@ const Dashboard = () => {
 
     const fetchNews = async () => {
       try {
-        const res = await axios.get(`https://rsb-news-backend.onrender.com/api/news`, {
+        const res = await axios.get("https://rsb-news-backend.onrender.com/api/news", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

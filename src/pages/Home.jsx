@@ -33,7 +33,7 @@ const Home = () => {
               <h3 className="text-xl font-semibold">{news.title}</h3>
               <p className="text-gray-600 text-sm mt-2 line-clamp-3">{news.content.slice(0, 120)}...</p>
               <Link
-                to={'/news/${news._id}'}
+                to={`/news/${news._id}`}
                 className="inline-block mt-4 text-blue-600 hover:underline font-medium"
               >
                 Read More
