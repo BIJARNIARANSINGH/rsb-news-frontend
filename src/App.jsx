@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom'; // 🧼 No BrowserRouter here
+import { Routes, Route } from 'react-router-dom';
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -31,7 +31,7 @@ const App = () => {
             }
           />
           <Route
-            path="/create"
+            path="/create-news"
             element={
               <PrivateRoute>
                 <CreateNews />
