@@ -7,6 +7,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 const EditNews = () => {
   const { id } = useParams();
   const [news, setNews] = useState({ title: '', content: '', imageUrl: '' });
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
@@ -18,14 +19,16 @@ const EditNews = () => {
 
     const fetchNews = async () => {
       try {
-        const res = await axios.get('https://rsb-news-backend.onrender.com/api/news/${id}', {
+        const res = await axios.get(`https://rsb-news-backend.onrender.com/api/news/${id}`, {
           headers: {
-            Authorization: 'Bearer ${token}',
+            Authorization: `Bearer ${token}`,
           },
         });
         setNews(res.data);
       } catch (err) {
         console.error('Error fetching news:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -39,9 +42,9 @@ const EditNews = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put('https://rsb-news-backend.onrender.com/api/news/${id}', news, {
+      await axios.put(`https://rsb-news-backend.onrender.com/api/news/${id}`, news, {
         headers: {
-          Authorization: 'Bearer ${token}',
+          Authorization: `Bearer ${token}`,
         },
       });
       navigate('/dashboard');
@@ -49,6 +52,10 @@ const EditNews = () => {
       console.error('Error updating news:', err);
     }
   };
+
+  if (loading) {
+    return <p className="text-center mt-10">Loading...</p>;
+  }
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white p-6 rounded shadow">

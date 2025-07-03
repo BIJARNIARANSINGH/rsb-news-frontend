@@ -11,7 +11,11 @@ const Home = () => {
     const fetchNews = async () => {
       try {
         const res = await axios.get('https://rsb-news-backend.onrender.com/api/news');
-        setNewsList(res.data);
+        // Sort descending by createdAt
+        const sorted = res.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setNewsList(sorted);
       } catch (err) {
         console.error('Error fetching news:', err);
       }
@@ -21,11 +25,12 @@ const Home = () => {
   }, []);
 
   const filteredNews = newsList
-    .filter(news =>
-      news.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      news.content.toLowerCase().includes(searchQuery.toLowerCase())
+    .filter(
+      (news) =>
+        news.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        news.content.toLowerCase().includes(searchQuery.toLowerCase())
     )
-    .filter(news =>
+    .filter((news) =>
       selectedCategory ? news.category === selectedCategory : true
     );
 
@@ -50,13 +55,12 @@ const Home = () => {
         >
           <option value="">-- श्रेणी द्वारा फ़िल्टर करें --</option>
           <option value="Finance">Finance</option>
-          <option value="Politics">Politics</option>
-          <option value="Education">Education</option>
-          <option value="Learn English with Vikram">Learn English with Vikram</option>
-          <option value="Interesting facts">Interesting facts</option>
-          <option value="Stock Market Analysis">Stock Market Analysis</option>
           <option value="Property">Property</option>
-          <option value="Other or Miscellaneous">Other or Miscellaneous</option>
+          <option value="Political">Political</option>
+          <option value="Jobs">Jobs</option>
+          <option value="Technical">Technical</option>
+          <option value="Learn English with Vikram">Learn English with Vikram</option>
+          <option value="Miscellaneous">Miscellaneous</option>
         </select>
       </div>
 
@@ -64,8 +68,16 @@ const Home = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredNews.map((news) => (
           <div key={news._id} className="bg-white shadow rounded overflow-hidden">
-            {news.imageUrl && (
-              <img src={news.imageUrl} alt={news.title} className="w-full h-48 object-cover" />
+            {news.mediaUrl ? (
+              <img
+                src={`https://rsb-news-backend.onrender.com${news.mediaUrl}`}
+                alt={news.title}
+                className="w-full h-48 object-cover"
+              />
+            ) : (
+              <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">
+                No Image
+              </div>
             )}
             <div className="p-4">
               <h3 className="text-xl font-semibold">{news.title}</h3>

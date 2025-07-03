@@ -1,9 +1,9 @@
+/* index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* You can add custom global styles below if needed */
-
+/* Extra styles if needed */
 body {
-  @apply bg-gray-100 text-gray-900 font-sans;
+  background-color: #f3f4f6;
 }

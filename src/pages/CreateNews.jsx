@@ -10,6 +10,7 @@ const CreateNews = () => {
   const [category, setCategory] = useState('');
   const [miscInput, setMiscInput] = useState('');
   const [status, setStatus] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleMediaChange = (e) => {
     setMediaFile(e.target.files[0]);
@@ -17,14 +18,17 @@ const CreateNews = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus('Submitting...');
+    setStatus('');
+    setSubmitting(true);
+
+    const finalCategory = category === 'Miscellaneous' ? miscInput : category;
 
     const formData = new FormData();
     formData.append('title', title);
     formData.append('content', content);
-    formData.append('category', category === 'Miscellaneous' ? miscInput : category);
+    formData.append('category', finalCategory);
     if (mediaFile) {
-      formData.append('file', mediaFile); // IMPORTANT: backend expects 'file'
+      formData.append('file', mediaFile); // IMPORTANT: name should be 'file'
     }
 
     try {
@@ -40,7 +44,9 @@ const CreateNews = () => {
       setMediaFile(null);
     } catch (err) {
       console.error('❌ Error:', err);
-      setStatus('❌ Failed to submit news.');
+      setStatus(`❌ Failed: ${err.message}`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -121,8 +127,12 @@ const CreateNews = () => {
         )}
 
         {/* Submit */}
-        <button type="submit" style={{ padding: '10px 20px', marginTop: '10px' }}>
-          Submit
+        <button
+          type="submit"
+          disabled={submitting}
+          style={{ padding: '10px 20px', marginTop: '10px' }}
+        >
+          {submitting ? 'Submitting...' : 'Submit'}
         </button>
       </form>
 

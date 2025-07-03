@@ -8,21 +8,35 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+
     try {
       const res = await axios.post('https://rsb-news-backend.onrender.com/api/users/login', {
         email,
         password,
       });
+
       localStorage.setItem('token', res.data.token);
+
+      // Optionally, store user info
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err.response?.data || err.message);
-      setError(err.response?.data?.message || 'Login failed');
+      setError(
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        'Login failed'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,9 +67,12 @@ const Login = () => {
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          disabled={loading}
+          className={`w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
     </div>
