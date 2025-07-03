@@ -5,6 +5,15 @@ export default defineConfig({
   plugins: [react()],
   esbuild: {
     loader: 'jsx',
-    include: [/\.jsx$/, /\.js$/], // ✅ covers both .js and .jsx files
+    include: [/\.jsx$/, /\.js$/],
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });

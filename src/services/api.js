@@ -1,19 +1,22 @@
-import axios from 'axios';
+export const submitNews = async (formData) => {
+  const token = localStorage.getItem('token'); // Get token
 
-const API = import.meta.env.VITE_API;
+  try {
+    const response = await fetch('http://localhost:5000/api/news', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData,
+    });
 
-const axiosInstance = axios.create({
-  baseURL: API,
-});
+    if (!response.ok) {
+      throw new Error('Failed to submit news');
+    }
 
-// Optional: Interceptors for adding token
-axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    return await response.json();
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
   }
-  return config;
-});
-
-export default axiosInstance;
-
+};

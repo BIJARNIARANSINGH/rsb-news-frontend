@@ -1,120 +1,132 @@
+// src/pages/CreateNews.jsx
+
 import React, { useState } from 'react';
+import { submitNews } from '../services/api';
 
 const CreateNews = () => {
+  const [mediaFile, setMediaFile] = useState(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
-  const [customCategory, setCustomCategory] = useState('');
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState('');
+  const [miscInput, setMiscInput] = useState('');
+  const [status, setStatus] = useState('');
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
-    }
+  const handleMediaChange = (e) => {
+    setMediaFile(e.target.files[0]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const finalCategory =
-      category === 'Other or Miscellaneous' ? customCategory.trim() : category;
+    setStatus('Submitting...');
 
     const formData = new FormData();
     formData.append('title', title);
     formData.append('content', content);
-    formData.append('category', finalCategory);
-    formData.append('image', image);
+    formData.append('category', category === 'Miscellaneous' ? miscInput : category);
+    if (mediaFile) {
+      formData.append('file', mediaFile); // IMPORTANT: backend expects 'file'
+    }
 
-    fetch('/api/news', {
-      method: 'POST',
-      body: formData,
-    })
-      .then((res) => res.json())
-      .then(() => {
-        alert('📝 लेख सफलतापूर्वक बनाया गया!');
-        setTitle('');
-        setContent('');
-        setCategory('');
-        setCustomCategory('');
-        setImage(null);
-        setPreview('');
-      })
-      .catch((err) => console.error('❌ सबमिट करने में समस्या:', err));
+    try {
+      const response = await submitNews(formData);
+      console.log('✅ Posted:', response);
+      setStatus('✅ News submitted successfully!');
+
+      // Clear form
+      setTitle('');
+      setContent('');
+      setCategory('');
+      setMiscInput('');
+      setMediaFile(null);
+    } catch (err) {
+      console.error('❌ Error:', err);
+      setStatus('❌ Failed to submit news.');
+    }
+  };
+
+  const renderMediaPreview = () => {
+    if (!mediaFile) return null;
+    const type = mediaFile.type;
+    const url = URL.createObjectURL(mediaFile);
+
+    if (type.startsWith('image/')) {
+      return <img src={url} alt="Preview" style={{ maxWidth: '200px', marginTop: '10px' }} />;
+    } else if (type.startsWith('video/')) {
+      return (
+        <video controls style={{ maxWidth: '200px', marginTop: '10px' }}>
+          <source src={url} type={type} />
+          Your browser does not support the video tag.
+        </video>
+      );
+    }
+
+    return <p>Selected file: {mediaFile.name}</p>;
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
-      <h2 className="text-2xl font-bold mb-4">नया लेख बनाएँ</h2>
-      <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
+    <div style={{ padding: '20px' }}>
+      <h2>Create News</h2>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
+        {/* Media Input */}
+        <input type="file" accept="image/*,video/*" onChange={handleMediaChange} />
+        {renderMediaPreview()}
+
+        {/* Title */}
         <input
           type="text"
-          placeholder="लेख का शीर्षक"
+          placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2"
           required
+          style={{ width: '100%', padding: '8px', marginTop: '10px' }}
         />
 
+        {/* Content */}
         <textarea
-          placeholder="लेख की सामग्री"
+          placeholder="Content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 h-40"
           required
+          rows={6}
+          style={{ width: '100%', padding: '8px', marginTop: '10px' }}
         />
 
+        {/* Category */}
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-gray-800"
           required
+          style={{ width: '100%', padding: '8px', marginTop: '10px' }}
         >
-          <option value="">-- लेख की श्रेणी चुनें --</option>
+          <option value="">Select Category</option>
           <option value="Finance">Finance</option>
-          <option value="Politics">Politics</option>
-          <option value="Education">Education</option>
-          <option value="Learn English with Vikram">Learn English with Vikram</option>
-          <option value="Interesting facts">Interesting facts</option>
-          <option value="Stock Market Analysis">Stock Market Analysis</option>
           <option value="Property">Property</option>
-          <option value="Other or Miscellaneous">Other or Miscellaneous</option>
+          <option value="Political">Political</option>
+          <option value="Jobs">Jobs</option>
+          <option value="Technical">Technical</option>
+          <option value="Learn English with Vikram">Learn English with Vikram</option>
+          <option value="Miscellaneous">Miscellaneous</option>
         </select>
 
-        {/* Show custom input if category is Other */}
-        {category === 'Other or Miscellaneous' && (
+        {/* Misc Input */}
+        {category === 'Miscellaneous' && (
           <input
             type="text"
-            placeholder="अपनी श्रेणी दर्ज करें"
-            value={customCategory}
-            onChange={(e) => setCustomCategory(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Enter custom category"
+            value={miscInput}
+            onChange={(e) => setMiscInput(e.target.value)}
             required
+            style={{ width: '100%', padding: '8px', marginTop: '10px' }}
           />
         )}
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="block w-full text-sm text-gray-700"
-        />
-
-        {preview && (
-          <div className="mt-2">
-            <img src={preview} alt="Preview" className="max-h-64 object-contain border" />
-          </div>
-        )}
-
-        <button
-          type="submit"
-          className="bg-blue-600 text-white py-2 px-6 rounded hover:bg-blue-700 transition"
-        >
-          सबमिट करें
+        {/* Submit */}
+        <button type="submit" style={{ padding: '10px 20px', marginTop: '10px' }}>
+          Submit
         </button>
       </form>
+
+      {status && <p style={{ marginTop: '15px' }}>{status}</p>}
     </div>
   );
 };
