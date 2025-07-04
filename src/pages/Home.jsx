@@ -1,102 +1,216 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+// src/pages/Home.jsx
+
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { BASE_URL } from "../services/api";
 
 const Home = () => {
   const [newsList, setNewsList] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [filteredNews, setFilteredNews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 6;
+
+  const fetchNews = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/api/news`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch news");
+      }
+      const data = await response.json();
+      setNewsList(data);
+      setFilteredNews(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const res = await axios.get('https://rsb-news-backend.onrender.com/api/news');
-        // Sort descending by createdAt
-        const sorted = res.data.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        setNewsList(sorted);
-      } catch (err) {
-        console.error('Error fetching news:', err);
-      }
-    };
-
     fetchNews();
   }, []);
 
-  const filteredNews = newsList
-    .filter(
-      (news) =>
-        news.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        news.content.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .filter((news) =>
-      selectedCategory ? news.category === selectedCategory : true
-    );
+  useEffect(() => {
+    let data = [...newsList];
+
+    if (categoryFilter) {
+      data = data.filter((n) => n.category === categoryFilter);
+    }
+
+    if (search) {
+      data = data.filter((n) =>
+        n.title.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (sortOrder === "asc") {
+      data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    } else {
+      data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    setFilteredNews(data);
+    setCurrentPage(1);
+  }, [search, categoryFilter, sortOrder, newsList]);
+
+  const indexOfLast = currentPage * perPage;
+  const indexOfFirst = indexOfLast - perPage;
+  const currentNews = filteredNews.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredNews.length / perPage);
+
+  if (loading) return <p style={{ padding: "20px" }}>Loading...</p>;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 mt-6">
-      <h2 className="text-3xl font-bold mb-6 text-center">ताज़ा समाचार</h2>
+    <div style={{ padding: "20px" }}>
+      <h2>📰 Latest News</h2>
 
-      {/* 🔍 Search & Filter */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+      {/* Filters */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px",
+          marginTop: "15px",
+        }}
+      >
         <input
           type="text"
-          placeholder="🔍 शीर्षक या सामग्री खोजें..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 border border-gray-300 rounded px-3 py-2"
+          placeholder="Search by Title..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: "8px", flex: "1" }}
         />
 
         <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="w-full md:w-64 border border-gray-300 rounded px-3 py-2 bg-white"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          style={{ padding: "8px" }}
         >
-          <option value="">-- श्रेणी द्वारा फ़िल्टर करें --</option>
+          <option value="">All Categories</option>
           <option value="Finance">Finance</option>
           <option value="Property">Property</option>
           <option value="Political">Political</option>
           <option value="Jobs">Jobs</option>
           <option value="Technical">Technical</option>
-          <option value="Learn English with Vikram">Learn English with Vikram</option>
-          <option value="Miscellaneous">Miscellaneous</option>
+          <option value="Learn English with Vikram">
+            Learn English with Vikram
+          </option>
+        </select>
+
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          style={{ padding: "8px" }}
+        >
+          <option value="desc">Newest First</option>
+          <option value="asc">Oldest First</option>
         </select>
       </div>
 
-      {/* 📰 News Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {filteredNews.map((news) => (
-          <div key={news._id} className="bg-white shadow rounded overflow-hidden">
-            {news.mediaUrl ? (
-              <img
-                src={`https://rsb-news-backend.onrender.com${news.mediaUrl}`}
-                alt={news.title}
-                className="w-full h-48 object-cover"
-              />
-            ) : (
-              <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">
-                No Image
-              </div>
-            )}
-            <div className="p-4">
-              <h3 className="text-xl font-semibold">{news.title}</h3>
-              <p className="text-gray-600 text-sm mt-2 line-clamp-3">
-                {news.content.slice(0, 120)}...
-              </p>
+      {currentNews.length === 0 ? (
+        <p style={{ marginTop: "20px" }}>No news found.</p>
+      ) : (
+        <>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gap: "20px",
+              marginTop: "20px",
+            }}
+          >
+            {currentNews.map((news) => (
               <Link
+                key={news._id}
                 to={`/news/${news._id}`}
-                className="inline-block mt-4 text-blue-600 hover:underline font-medium"
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  padding: "10px",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "transform 0.2s",
+                }}
               >
-                Read More
+                {news.media && (
+                  <>
+                    {news.media.endsWith(".mp4") ? (
+                      <video
+                        controls
+                        style={{
+                          width: "100%",
+                          height: "150px",
+                          objectFit: "cover",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        <source src={`${BASE_URL}${news.media}`} />
+                      </video>
+                    ) : (
+                      <img
+                        src={`${BASE_URL}${news.media}`}
+                        alt="media"
+                        style={{
+                          width: "100%",
+                          height: "150px",
+                          objectFit: "cover",
+                          borderRadius: "4px",
+                        }}
+                      />
+                    )}
+                  </>
+                )}
+                <h4 style={{ margin: "10px 0 5px 0" }}>{news.title}</h4>
+                <p style={{ fontSize: "0.85em", color: "#666" }}>
+                  {news.category} •{" "}
+                  {new Date(news.createdAt).toLocaleDateString()}
+                </p>
+                <p style={{ fontSize: "0.9em", margin: "5px 0" }}>
+                  {news.content.slice(0, 60)}...
+                </p>
+                <p style={{ color: "#007bff", marginTop: "auto" }}>
+                  Read more →
+                </p>
               </Link>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {filteredNews.length === 0 && (
-        <p className="text-center text-gray-500 mt-10">कोई परिणाम नहीं मिला।</p>
+          {/* Pagination */}
+          <div
+            style={{
+              marginTop: "20px",
+              display: "flex",
+              justifyContent: "center",
+              gap: "10px",
+              flexWrap: "wrap",
+            }}
+          >
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                style={{
+                  padding: "6px 12px",
+                  background: page === currentPage ? "#007bff" : "#eee",
+                  color: page === currentPage ? "#fff" : "#333",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
