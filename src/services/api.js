@@ -1,6 +1,7 @@
 // frontend/src/services/api.js
 
-export const BASE_URL = 'https://rsb-news-backend.onrender.com';
+// ✅ लोकल backend URL
+export const BASE_URL = 'https://your-backend-app.onrender.com';
 
 // Submit news
 export const submitNews = async (formData) => {
@@ -9,15 +10,22 @@ export const submitNews = async (formData) => {
   const response = await fetch(`${BASE_URL}/api/news`, {
     method: 'POST',
     headers: {
-      // Don't set Content-Type here
       Authorization: `Bearer ${token}`,
+      // NOTE: Content-Type ना लगाएं, FormData के लिए खुद लगती है
     },
     body: formData,
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to submit news');
+    const errorText = await response.text();
+    let errorMessage;
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage = errorData.error || errorText;
+    } catch {
+      errorMessage = errorText || 'Failed to submit news';
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -35,8 +43,15 @@ export const deleteNews = async (newsId) => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to delete news');
+    const errorText = await response.text();
+    let errorMessage;
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage = errorData.error || errorText;
+    } catch {
+      errorMessage = errorText || 'Failed to delete news';
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -54,8 +69,15 @@ export const getNewsById = async (newsId) => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to fetch news details');
+    const errorText = await response.text();
+    let errorMessage;
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage = errorData.error || errorText;
+    } catch {
+      errorMessage = errorText || 'Failed to fetch news details';
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -74,8 +96,15 @@ export const updateNews = async (newsId, formData) => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to update news');
+    const errorText = await response.text();
+    let errorMessage;
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage = errorData.error || errorText;
+    } catch {
+      errorMessage = errorText || 'Failed to update news';
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
