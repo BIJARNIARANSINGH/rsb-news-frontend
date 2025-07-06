@@ -1,7 +1,7 @@
 // frontend/src/services/api.js
 
 // ✅ लोकल backend URL
-export const BASE_URL = 'export const BASE_URL = 'https://rsb-news-backend.onrender.com';
+export const BASE_URL = 'https://rsb-news-backend.onrender.com';
 
 // Submit news
 export const submitNews = async (formData) => {
