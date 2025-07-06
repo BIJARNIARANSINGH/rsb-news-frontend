@@ -29,12 +29,13 @@ const NewsDetail = () => {
     return <p>Loading...</p>;
   }
 
-  const BASE_URL = 'https://your-backend-app.onrender.com'; // लोकल के लिए
-  const mediaUrl = news.media ? `${BASE_URL}${news.media}` : null;
+  const mediaUrl = news.media
+    ? `https://rsb-news-backend.onrender.com${news.media}`
+    : null;
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      {mediaUrl ? (
+      {mediaUrl && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           {mediaUrl.endsWith('.mp4') ? (
             <video
@@ -62,10 +63,6 @@ const NewsDetail = () => {
             />
           )}
         </div>
-      ) : (
-        <p style={{ fontStyle: 'italic', color: '#777' }}>
-          ⚠️ कोई मीडिया उपलब्ध नहीं है
-        </p>
       )}
 
       <h1

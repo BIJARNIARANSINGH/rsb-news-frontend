@@ -1,5 +1,3 @@
-// src/pages/Home.jsx
-
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BASE_URL } from "../services/api";
@@ -18,9 +16,7 @@ const Home = () => {
     setLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/api/news`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch news");
-      }
+      if (!response.ok) throw new Error("Failed to fetch news");
       const data = await response.json();
       setNewsList(data);
       setFilteredNews(data);
@@ -152,11 +148,11 @@ const Home = () => {
                           borderRadius: "4px",
                         }}
                       >
-                        <source src={`${BASE_URL}${news.media}`} />
+                        <source src={`https://rsb-news-backend.onrender.com${news.media}`} />
                       </video>
                     ) : (
                       <img
-                        src={`${BASE_URL}${news.media}`}
+                        src={`https://rsb-news-backend.onrender.com${news.media}`}
                         alt="media"
                         style={{
                           width: "100%",
